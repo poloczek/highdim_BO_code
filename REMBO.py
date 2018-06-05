@@ -10,11 +10,12 @@ import kernel_inputs
 
 
 def EI(D_size,f_max,mu,var):
-    ei=[0]*D_size
+    ei=np.zeros((D_size,1))
+    std_dev=np.sqrt(var)
     for i in range(D_size):
         if var[i]!=0:
-            z= (mu[i] - f_max) / var[i]
-            ei[i]= (mu[i]-f_max) * norm.cdf(z) + var[i] * norm.pdf(z)
+            z= (mu[i] - f_max) / std_dev[i]
+            ei[i]= (mu[i]-f_max) * norm.cdf(z) + std_dev[i] * norm.pdf(z)
     return ei
 
 def RunRembo(effective_dim=2, high_dim=20, initial_n=20, total_itr=100,
