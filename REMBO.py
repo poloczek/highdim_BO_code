@@ -7,6 +7,7 @@ import functions
 import projection_matrix
 import projections
 import kernel_inputs
+from custom_kern import CustomMatern52
 
 
 def EI(D_size,f_max,mu,var):
@@ -43,34 +44,34 @@ def RunRembo(effective_dim=2, high_dim=20, initial_n=20, total_itr=100,
         TypeError('The input for matrix_type variable is invalid, which is', matrix_type)
         return
 
+    # Generating matrix A
+    if A_input is not None:
+        matrix.A = A_input
+
+    A = matrix.evaluate()
+
     #Specifying the input type of kernel
     if kern_inp_type=='Y':
-        kern_inp=kernel_inputs.InputY()
+        kern_inp = kernel_inputs.InputY(A)
     elif kern_inp_type=='X':
-        kern_inp=kernel_inputs.InputX()
+        kern_inp = kernel_inputs.InputX(A)
     elif kern_inp_type == 'psi':
-        kern_inp = kernel_inputs.InputPsi()
+        kern_inp = kernel_inputs.InputPsi(A)
     else:
         TypeError('The input for kern_inp_type variable is invalid, which is', kern_inp_type)
         return
 
-    best_results=np.zeros([1,total_itr])
-
-    # Generating matrix A
-    if A_input is not None:
-        matrix.A= A_input
-
-    A = matrix.evaluate()
     #Specifying the convex projection
     cnv_prj=projections.ConvexProjection(A)
 
+    best_results=np.zeros([1,total_itr])
     # Initiating first sample    # Sample points are in [-d^1/2, d^1/2]
     if s is None:
         s = lhs(effective_dim, initial_n) * 2 * math.sqrt(effective_dim) - math.sqrt(effective_dim)
         f_s = test_func.evaluate(cnv_prj.evaluate(s))
 
     # Generating GP model
-    k = GPy.kern.Matern52(input_dim=effective_dim)
+    k = CustomMatern52(input_dim=effective_dim, input_type=kern_inp)
     m = GPy.models.GPRegression(s, f_s, kernel=k)
     m.likelihood.variance = 1e-6
     m.optimize()
@@ -81,9 +82,9 @@ def RunRembo(effective_dim=2, high_dim=20, initial_n=20, total_itr=100,
 
         # Updating GP model
         m.set_XY(s,f_s)
-        if i % 50 == 0:
+        if (i+1) % 5 == 0:
             m.optimize()
-        mu, var = m.predict(kern_inp.evaluate(A, D))
+        mu, var = m.predict(D)
 
         # finding the next point for sampling
         ei_d = EI(len(D), max(f_s), mu, var)

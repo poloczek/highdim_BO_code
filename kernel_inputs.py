@@ -1,22 +1,27 @@
 import numpy as np
 import projections
 
-class Inputs:
-    def evaluate(self, A, y):
+class InputY:
+    def __init__(self, A):
         pass
 
-class InputY(Inputs):
-    def evaluate(self, A, y):
+    def evaluate(self, y):
         return y
 
-class InputX(Inputs):
-    def evaluate(self, A, y):
-        cp=projections.ConvexProjection(A)
-        x=cp.evaluate(y)
+class InputX(InputY):
+    def __init__(self, A):
+        super().__init__(A)
+        self.cp = projections.ConvexProjection(A)
+
+    def evaluate(self, y):
+        x=self.cp.evaluate(y)
         return x
 
-class InputPsi(Inputs):
-    def evaluate(self, A, y):
-        wbp=projections.WarpingBackProjection(A)
-        psi=wbp.evaluate(y)
+class InputPsi(InputY):
+    def __init__(self, A):
+        super().__init__(A)
+        self.wbp = projections.WarpingBackProjection(A)
+
+    def evaluate(self, y):
+        psi=self.wbp.evaluate(y)
         return psi

@@ -46,4 +46,3 @@ class WarpingBackProjection(ConvexProjection):
             else:
                 psi[i] = np.copy(x[i])
         return psi
-
