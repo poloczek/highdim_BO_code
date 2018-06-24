@@ -9,10 +9,15 @@ class TestFunction:
         pass
 
 class Rosenbrock(TestFunction):
+    def __init__(self):
+        self.range=np.array([[-2,2],
+                             [-2,2]])
     def scale_domain(self,x):
         # Scaling the domain
         x_copy = np.copy(x)
-        x_copy *= 2.0
+        for i in range(len(self.range)):
+            x_copy[:, i] = x_copy[:, i] * (self.range[i,1] - self.range[i,0]) / 2 + (
+                    self.range[i,1] + self.range[i,0]) / 2
         return x_copy
 
     def evaluate(self,x):
@@ -24,11 +29,15 @@ class Rosenbrock(TestFunction):
         return f
 
 class Branin(TestFunction):
+    def __init__(self):
+        self.range=np.array([[-5,10],
+                             [0,15]])
     def scale_domain(self,x):
         # Scaling the domain
         x_copy = np.copy(x)
-        x_copy[:, 0] = x_copy[:, 0] * (10 + 5) / 2 + (10 - 5) / 2
-        x_copy[:, 1] = x_copy[:, 1] * (15 + 0) / 2 + (15 - 0) / 2
+        for i in range(len(self.range)):
+            x_copy[:, i] = x_copy[:, i] * (self.range[i, 1] - self.range[i, 0]) / 2 + (
+                        self.range[i, 1] + self.range[i, 0]) / 2
         return x_copy
 
     def evaluate(self,x):
@@ -41,10 +50,19 @@ class Branin(TestFunction):
         return f
 
 class Hartmann6(TestFunction):
+    def __init__(self):
+        self.range=np.array([[0, 1],
+                             [0, 1],
+                             [0, 1],
+                             [0, 1],
+                             [0, 1],
+                             [0, 1]])
     def scale_domain(self,x):
         # Scaling the domain
         x_copy = np.copy(x)
-        x_copy = x_copy*0.5+0.5
+        for i in range(len(self.range)):
+            x_copy[:, i] = x_copy[:, i] * (self.range[i, 1] - self.range[i, 0]) / 2 + (
+                    self.range[i, 1] + self.range[i, 0]) / 2
         return x_copy
 
     def evaluate(self,x):
