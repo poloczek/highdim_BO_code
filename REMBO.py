@@ -9,7 +9,6 @@ import projections
 import kernel_inputs
 from custom_kern import CustomMatern52
 
-
 def EI(D_size,f_max,mu,var):
     ei=np.zeros((D_size,1))
     std_dev=np.sqrt(var)
@@ -53,10 +52,13 @@ def RunRembo(low_dim=2, high_dim=20, initial_n=20, total_itr=100,
     #Specifying the input type of kernel
     if kern_inp_type=='Y':
         kern_inp = kernel_inputs.InputY(A)
+        input_dim=low_dim
     elif kern_inp_type=='X':
         kern_inp = kernel_inputs.InputX(A)
+        input_dim = high_dim
     elif kern_inp_type == 'psi':
         kern_inp = kernel_inputs.InputPsi(A)
+        input_dim = high_dim
     else:
         TypeError('The input for kern_inp_type variable is invalid, which is', kern_inp_type)
         return
@@ -71,8 +73,8 @@ def RunRembo(low_dim=2, high_dim=20, initial_n=20, total_itr=100,
         f_s = test_func.evaluate(cnv_prj.evaluate(s))
 
     # Generating GP model
-    k = CustomMatern52(input_dim=low_dim, input_type=kern_inp)
-    m = GPy.models.GPRegression(s, f_s, kernel=k)
+    k = GPy.kern.Matern52(input_dim=input_dim)
+    m = GPy.models.GPRegression(kern_inp.evaluate(s), f_s, kernel=k)
     m.likelihood.variance = 1e-6
     m.optimize()
 
@@ -81,10 +83,10 @@ def RunRembo(low_dim=2, high_dim=20, initial_n=20, total_itr=100,
         D = lhs(low_dim, 1000) * 2 * math.sqrt(low_dim) - math.sqrt(low_dim)
 
         # Updating GP model
-        m.set_XY(s,f_s)
-        if (i+1) % 5 == 0:
+        m.set_XY(kern_inp.evaluate(s),f_s)
+        if (i+1) % 50 == 0:
             m.optimize()
-        mu, var = m.predict(D)
+        mu, var = m.predict(kern_inp.evaluate(D))
 
         # finding the next point for sampling
         ei_d = EI(len(D), max(f_s), mu, var)
